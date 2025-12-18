@@ -132,3 +132,101 @@ let encode l =
 assert (
   encode [ "a"; "a"; "a"; "a"; "b"; "c"; "c"; "a"; "a"; "d"; "e"; "e"; "e"; "e" ]
   = [ 4, "a"; 1, "b"; 2, "c"; 2, "a"; 1, "d"; 4, "e" ])
+
+(* 11) *)
+type 'a rle =
+  | One of 'a
+  | Many of int * 'a
+
+let encode2 l =
+  let rec aux acc l =
+    match l, acc with
+    | [], [] -> []
+    | [], a -> a
+    | [ x ], [] -> [ One x ]
+    | [ x ], One ax :: atl -> if x = ax then Many (2, ax) :: atl else One x :: acc
+    | [ x ], Many (n, ax) :: atl ->
+      if x = ax then Many (n + 1, ax) :: atl else One x :: acc
+    | hd :: tl, acc -> aux (aux acc [ hd ]) tl
+  in
+  rev @@ aux [] l
+;;
+
+assert (
+  encode2 [ "a"; "a"; "a"; "a"; "b"; "c"; "c"; "a"; "a"; "d"; "e"; "e"; "e"; "e" ]
+  = [ Many (4, "a"); One "b"; Many (2, "c"); Many (2, "a"); One "d"; Many (4, "e") ])
+
+(* 12) *)
+let decode (l : 'a rle list) =
+  let rec aux acc l =
+    match l with
+    | [] -> []
+    | [ One x ] -> x :: acc
+    | [ Many (n, x) ] -> List.init n (fun _ -> x) @ acc
+    | x :: tl -> aux (aux acc [ x ]) tl
+  in
+  rev @@ aux [] l
+;;
+
+assert (
+  decode [ Many (4, "a"); One "b"; Many (2, "c"); Many (2, "a"); One "d"; Many (4, "e") ]
+  = [ "a"; "a"; "a"; "a"; "b"; "c"; "c"; "a"; "a"; "d"; "e"; "e"; "e"; "e" ])
+
+(* 13) It seems to be asking the same as problem 11 *)
+
+(* 14) *)
+let duplicate l =
+  let rec aux acc l =
+    match l with
+    | [] -> acc
+    | hd :: tl -> aux (hd :: hd :: acc) tl
+  in
+  rev @@ aux [] l
+;;
+
+assert (
+  duplicate [ "a"; "b"; "c"; "c"; "d" ]
+  = [ "a"; "a"; "b"; "b"; "c"; "c"; "c"; "c"; "d"; "d" ])
+
+(* 15) *)
+let replicate l n =
+  let rec aux acc l =
+    match l with
+    | [] -> acc
+    | hd :: tl -> aux (List.init n (fun _ -> hd) @ acc) tl
+  in
+  rev @@ aux [] l
+;;
+
+assert (replicate [ "a"; "b"; "c" ] 3 = [ "a"; "a"; "a"; "b"; "b"; "b"; "c"; "c"; "c" ])
+
+(* 16) *)
+let drop_nth l n =
+  let rec aux i l =
+    match l with
+    | [] -> []
+    | _ :: tl when i = n -> aux 1 tl
+    | hd :: tl -> hd :: aux (i + 1) tl
+  in
+  aux 1 l
+;;
+
+assert (
+  drop_nth [ "a"; "b"; "c"; "d"; "e"; "f"; "g"; "h"; "i"; "j" ] 3
+  = [ "a"; "b"; "d"; "e"; "g"; "h"; "j" ])
+
+(* 17) *)
+let split l n =
+  let rec aux acc i l =
+    match l with
+    | [] -> rev acc, []
+    | hd :: tl when i = n -> rev (hd :: acc), tl
+    | hd :: tl -> aux (hd :: acc) (i + 1) tl
+  in
+  aux [] 1 l
+;;
+
+assert (
+  split [ "a"; "b"; "c"; "d"; "e"; "f"; "g"; "h"; "i"; "j" ] 3
+  = ([ "a"; "b"; "c" ], [ "d"; "e"; "f"; "g"; "h"; "i"; "j" ]));
+assert (split [ "a"; "b"; "c"; "d" ] 5 = ([ "a"; "b"; "c"; "d" ], []))
