@@ -230,3 +230,62 @@ assert (
   split [ "a"; "b"; "c"; "d"; "e"; "f"; "g"; "h"; "i"; "j" ] 3
   = ([ "a"; "b"; "c" ], [ "d"; "e"; "f"; "g"; "h"; "i"; "j" ]));
 assert (split [ "a"; "b"; "c"; "d" ] 5 = ([ "a"; "b"; "c"; "d" ], []))
+
+(* 18) *)
+let slice l i k =
+  let rec aux idx l =
+    match l with
+    | [] -> []
+    | _ :: tl when idx < i -> aux (idx + 1) tl
+    | x :: tl when idx >= i && idx <= k -> x :: aux (idx + 1) tl
+    | _ -> []
+  in
+  aux 0 l
+;;
+
+assert (
+  slice [ "a"; "b"; "c"; "d"; "e"; "f"; "g"; "h"; "i"; "j" ] 2 6
+  = [ "c"; "d"; "e"; "f"; "g" ])
+
+(* 19) *)
+let rotate l n =
+  let rec aux acc idx l =
+    match l with
+    | [] -> acc
+    | hd :: tl when idx < n -> aux (hd :: acc) (idx + 1) tl
+    | l -> l @ rev acc
+  in
+  aux [] 0 l
+;;
+
+assert (
+  rotate [ "a"; "b"; "c"; "d"; "e"; "f"; "g"; "h" ] 3
+  = [ "d"; "e"; "f"; "g"; "h"; "a"; "b"; "c" ])
+
+(* 20) *)
+let rec remove_at k l =
+  match l with
+  | [] -> []
+  | _ :: tl when k = 0 -> tl
+  | hd :: tl -> hd :: remove_at (k - 1) tl
+;;
+
+assert (remove_at 1 [ "a"; "b"; "c"; "d" ] = [ "a"; "c"; "d" ])
+
+(* 21) *)
+let rec insert_at elem k l =
+  match l with
+  | [] -> []
+  | sl when k = 0 -> elem :: sl
+  | hd :: tl -> hd :: insert_at elem (k - 1) tl
+;;
+
+assert (insert_at "alfa" 1 [ "a"; "b"; "c"; "d" ] = [ "a"; "alfa"; "b"; "c"; "d" ])
+
+(* 22) *)
+let range i j =
+  let rec aux acc x = if x = j then x :: acc else aux (x :: acc) (x + 1) in
+  if i > j then [] else rev @@ aux [] i
+;;
+
+assert (range 4 9 = [ 4; 5; 6; 7; 8; 9 ])
